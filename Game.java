@@ -1,8 +1,4 @@
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.BasicGame;
@@ -13,15 +9,17 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.SpriteSheet;
+import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Vector2f;
-import org.newdawn.slick.particles.ConfigurableEmitter;
-import org.newdawn.slick.particles.ParticleIO;
-import org.newdawn.slick.particles.ParticleSystem;
+import org.newdawn.slick.util.ResourceLoader;
+
+import java.awt.Font;
+import java.io.InputStream;
 
 public class Game extends BasicGame {
 	private final static int XDIMENSION = 1400;
 	private final static int YDIMENSION = 800;
-	private final static int SHOTDELAY = 20;//not in milliseconds
+	private final static int SHOTDELAY = 20;// not in milliseconds
 	private Vector2f start;
 	private Vector2f barrelStart = new Vector2f((XDIMENSION / 2) - 13, YDIMENSION - 110);
 	private double speed = 1.7;
@@ -30,17 +28,19 @@ public class Game extends BasicGame {
 	private int chance;
 	private ArrayList<Bullet> bullets1;
 	private ArrayList<Bomb> bombs;
+	private ArrayList<Explosion> exp;
 	private Image crosshair;
 	private Image tBase;
 	private Image actualBase;
-	private Image barrel;
 	private Image background;
 	private boolean isLost;
-	private SpriteSheet explosion;
-	private Animation explosionAnimation;
+	private TrueTypeFont font;
+	private TrueTypeFont font2;
+	private TrueTypeFont overFont;
 	// private ParticleSystem system;
 	// private ConfigurableEmitter emitter;
 	Barrel barrel1 = new Barrel(barrelStart, XDIMENSION);
+	Explosion explosion;
 
 	public Game(String name) {
 		super("Bomb Blaster");
@@ -48,13 +48,27 @@ public class Game extends BasicGame {
 
 	public void init(GameContainer gc) throws SlickException {
 		gc.setShowFPS(false);
-		explosion = new SpriteSheet("images/Explosion.png", 96, 96);
-		explosionAnimation = new Animation(explosion, 50);
-		// explosionAnimation.setLooping(false);
 		crosshair = new Image("images/Crosshair.png");
 		tBase = new Image("images/bottomCircle.png");
 		actualBase = new Image("images/ActualBase.png");
 		background = new Image("images/background.png");
+		explosion = new Explosion(0, 0);
+		Font awtFont = new Font("Times New Roman", Font.BOLD, 24);
+		font = new TrueTypeFont(awtFont, true);
+
+		// load font from a .ttf file
+		try {
+			InputStream inputStream = ResourceLoader.getResourceAsStream("images/karma_future.ttf");
+
+			Font awtFont2 = Font.createFont(Font.TRUETYPE_FONT, inputStream);
+			awtFont2 = awtFont2.deriveFont(50f);
+			font2 = new TrueTypeFont(awtFont2, true);
+			awtFont2 = awtFont2.deriveFont(50f);
+			overFont = new TrueTypeFont(awtFont2, true);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		/*
 		 * Image image = new Image("images/particle.png"); system = new
 		 * ParticleSystem(image,1500); File xmlFile = new
@@ -69,24 +83,27 @@ public class Game extends BasicGame {
 	}
 
 	public void setup() {
-		chance = 300;
+		chance = 200;
 		isLost = false;
 		score = 0;
 		start = new Vector2f(XDIMENSION / 2 - 10, YDIMENSION - 25);
 		barrelStart = new Vector2f((XDIMENSION / 2) - 13, YDIMENSION - 110);
 		bullets1 = new ArrayList<>();// creates arraylist with bullets
 		bombs = new ArrayList<>();
+		exp = new ArrayList<>();
+
 	}
 
 	public void spawnBullet(int x, int y, GameContainer gc) {
 		double angle = getAngle(x, y, gc);
-		bullets1.add(0, (new Bullet(speed, angle, x, y, start,XDIMENSION)));// adds bullet
-																	// to the
-																	// arraylist
+		bullets1.add(0, (new Bullet(speed, angle, x, y, start, XDIMENSION)));// adds
+																				// bullet
+		// to the
+		// arraylist
 	}
 
 	public void spawnBomb() {
-		int xCoord = (int) (Math.random() * (XDIMENSION / 2 - 1) + 1);
+		int xCoord = (int) (Math.random() * (XDIMENSION - 1) + 1);
 		// System.out.println(xCoord);
 		bombs.add(0, new Bomb(xCoord));
 	}
@@ -95,17 +112,16 @@ public class Game extends BasicGame {
 		crosshair.draw(gc.getInput().getMouseX() - 10, gc.getInput().getMouseY() - 10);
 	}
 
-	public void update(GameContainer gc, int millis) {
-		explosionAnimation.update(millis);
+	public void update(GameContainer gc, int millis) throws SlickException {
 
 		if (gc.getInput().isMousePressed(0) && delay <= 0) {
 			this.spawnBullet(gc.getInput().getMouseX(), gc.getInput().getMouseY(), gc);
 			double angle1 = getAngle(gc.getInput().getMouseX(), gc.getInput().getMouseY(), gc);
 			// System.out.println(angle1);
 			barrel1.recoil(millis, angle1);
-			delay = SHOTDELAY*millis;
+			delay = SHOTDELAY * millis;
 			// system.update(millis);
-			// this.drawExplosion(100, 300);
+
 			// called spawnbullet if mouse is pressed
 		}
 
@@ -118,17 +134,16 @@ public class Game extends BasicGame {
 			for (int x = 0; x < bombs.size(); x++) {
 				Bomb temp1 = bombs.get(x);
 				if (temp1.getBoundingBox().intersects(temp.getBoundingBox())) {
-
-					// explosionAnimation.draw(temp1.getX(),temp1.getX());
-
+					exp.add(0, new Explosion(temp1.getX(), temp1.getY()));
 					bombs.remove(x);
+					if (chance > 50) {
+						chance -= 2;
+					}
 					x--;
 					bullets1.remove(i);
 					i--;
 					score++;
-					chance -= 2;
 
-					// drawExplosion(temp1.getX(), temp1.getY());
 				}
 			}
 
@@ -154,11 +169,11 @@ public class Game extends BasicGame {
 				isLost = true;
 			}
 		}
-	}
 
-	public void drawExplosion(int x, int y) {
-		explosionAnimation.draw(x, y);
-		// System.out.println(x);
+		for (int i = 0; i < exp.size(); i++) {
+			Explosion temp = exp.get(i);
+			temp.update(millis);
+		}
 	}
 
 	public void render(GameContainer gc, Graphics g) throws SlickException {
@@ -166,11 +181,10 @@ public class Game extends BasicGame {
 		if (isLost == true) {
 			renderLost(gc, g);
 		} else {
-
+			g.setFont(font2);
 			// int angle12=(int) this.getAngle(gc.getInput().getMouseX(),
 			// gc.getInput().getMouseY(), gc);
 			background.draw(0, 0);
-			// drawExplosion(100,100);
 
 			for (int i = 0; i < bullets1.size(); i++) {
 
@@ -181,7 +195,7 @@ public class Game extends BasicGame {
 					Bomb temp1 = bombs.get(x);
 					if (temp1.getBoundingBox().intersects(temp.getBoundingBox())) {
 						System.out.println("hit");
-						// drawExplosion(temp1.getX(), temp1.getY());
+
 					}
 				}
 
@@ -192,23 +206,34 @@ public class Game extends BasicGame {
 				// updates the bullets
 				try {
 					tempBullet.render(g);
+
 				} catch (SlickException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+
+			for (int i = 0; i < exp.size(); i++) {
+				Explosion temp = exp.get(i);
+				temp.draw(0, 0);
+				if (temp.getLife() > 1000) {
+					exp.remove(i);
+					i--;
+				}
+
+			}
 			barrel1.render(g, gc);
 			renderGun(gc, g);// renders the turret
-			g.drawString("Score: " + score, 20, 20);
 
-			// explosionAnimation.draw(100,100);
 			gc.setMouseCursor("images/tempMouse.png", 0, 0);
-
+			g.drawString("Score: " + score, 20, 700);
 			for (Bomb b : bombs) {
 				b.render(g);
 
 			}
+
+			drawCrosshair(gc);// draws crosshair
 		}
-		drawCrosshair(gc);// draws crosshair
+
 	}
 
 	// renders the gun and rotates it so its pointing at the mouse
@@ -247,14 +272,14 @@ public class Game extends BasicGame {
 	}
 
 	public void renderLost(GameContainer gc, Graphics g) {
-
-		g.drawString("Your Final Score is: " + score, 350, 150);
-		g.scale(5, 5);
+		g.setFont(overFont);
+		g.drawString("Your Final Score Is : " + score, XDIMENSION / 2 - 275, YDIMENSION / 2 + 100);
 		// g.translate(300, -100);
-		g.drawString("GAME OVER!", 100, 100);
+		g.drawString("GAME OVER!", XDIMENSION / 2 - 150, YDIMENSION / 2 - 100);
 		g.setColor(Color.red);
 		if (gc.getInput().isKeyDown(Input.KEY_SPACE)) {
 			setup();
+			g.setColor(Color.white);
 		}
 	}
 
