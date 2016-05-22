@@ -15,25 +15,25 @@ public class Bullet {
 	private int lifeTime = 0;
 	private int XDIMENSION;
 
-	public Bullet(double speed, double angle, int xMouse, int yMouse, Vector2f startPos,int x) {
+	public Bullet(double speed, double angle, int xMouse, int yMouse, Vector2f startPos, int x) {
 		this.speed = speed;
 		this.angle = angle;
 		this.xMouse = xMouse;
 		this.yMouse = yMouse;
 		pos.x = startPos.x;
 		pos.y = startPos.y;
-		XDIMENSION=x;
+		XDIMENSION = x;
 	}
 
 	public void update(int millis) {
 		// moves the bullet in the direction of the angle
 
-		if (xMouse < XDIMENSION/2) {
+		if (xMouse < XDIMENSION / 2) {
 			pos.x -= Math.sin(Math.toRadians(angle)) * speed * millis;
 			pos.y -= Math.cos(Math.toRadians(angle)) * speed * millis;
 			lifeTime += millis;
 		}
-		if (xMouse > XDIMENSION/2) {
+		if (xMouse > XDIMENSION / 2) {
 			pos.x += Math.sin(Math.toRadians(angle)) * speed * millis;
 			pos.y -= Math.cos(Math.toRadians(angle)) * speed * millis;
 			lifeTime += millis;
@@ -56,10 +56,10 @@ public class Bullet {
 	public void render(Graphics g) throws SlickException {
 		// draws the bullet then rotates it accordingly
 		bullet = new Image("images/JustBullet.png");
-		if (xMouse > XDIMENSION/2) {
+		if (xMouse > XDIMENSION / 2) {
 			bullet.rotate((float) angle);
 		}
-		if (xMouse < XDIMENSION/2) {
+		if (xMouse < XDIMENSION / 2) {
 			bullet.rotate(((float) angle) * -1);
 		}
 
