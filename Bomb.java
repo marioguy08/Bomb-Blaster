@@ -8,7 +8,7 @@ public class Bomb {
 	private Image bomb1;
 	Vector2f pos = new Vector2f();
 	int fallSpeed = 1;
-	private int XDIMENSION;
+	//private int XDIMENSION;
 
 	public Bomb(int xCoord) {
 		pos.y = -100;
