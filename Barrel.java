@@ -51,7 +51,7 @@ public class Barrel {
 		}
 		// System.out.println(xOffset);
 		if (animLength > 10) {
-			if (gc.getInput().getMouseX() < XDIMENSION/2) {
+			if (gc.getInput().getMouseX() < XDIMENSION / 2) {
 				float offsetX = (float) ((Math.sin(Math.toRadians(angle)) * millis) / 1);
 				float offsetY = (float) ((Math.cos(Math.toRadians(angle)) * millis) / 1);
 				pos.x += offsetX;
@@ -60,7 +60,7 @@ public class Barrel {
 				yOffset += offsetY;
 				barrel.setRotation((float) staticAngle);
 			}
-			if (gc.getInput().getMouseX() > XDIMENSION/2) {
+			if (gc.getInput().getMouseX() > XDIMENSION / 2) {
 				float offsetX = (float) ((Math.sin(Math.toRadians(angle)) * millis) / 1);
 				float offsetY = (float) ((Math.cos(Math.toRadians(angle)) * millis) / 1);
 				pos.x -= offsetX;
@@ -73,7 +73,7 @@ public class Barrel {
 			animLength--;
 		}
 		if (animLength > 0 && animLength <= 10) {
-			if (gc.getInput().getMouseX() < XDIMENSION/2) {
+			if (gc.getInput().getMouseX() < XDIMENSION / 2) {
 				// float offsetX1=(float) ((Math.sin(Math.toRadians(angle)) *
 				// millis)*2);
 				// float offsetY1=(float) ((Math.cos(Math.toRadians(angle))
@@ -87,7 +87,7 @@ public class Barrel {
 				animLength--;
 			}
 
-			if (gc.getInput().getMouseX() > XDIMENSION/2) {
+			if (gc.getInput().getMouseX() > XDIMENSION / 2) {
 				// float offsetX=(float) ((Math.sin(Math.toRadians(angle)) *
 				// millis)*2);
 				// float offsetY=(float) ((Math.cos(Math.toRadians(angle))
